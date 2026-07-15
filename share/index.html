@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shared meal — MyMacros</title>
+  <title>Shared with you — MyMacros & MyRecipes</title>
   <style>
     :root { color-scheme: light dark; }
     body {
@@ -25,14 +25,15 @@
     p { color: #86868b; }
     .btn {
       display: inline-block;
-      margin-top: 1.25rem;
-      padding: 0.85rem 2rem;
+      margin: 1.25rem 0.3rem 0;
+      padding: 0.85rem 1.6rem;
       border-radius: 14px;
       background: #1D9E75;
       color: #fff !important;
       font-weight: 600;
       text-decoration: none;
     }
+    .btn.recipes { background: #4F7A4E; }
     .code {
       display: inline-block;
       margin-top: 1rem;
@@ -47,28 +48,52 @@
   </style>
 </head>
 <body>
-  <h1>🥗 A meal was shared with you</h1>
-  <p>Open it in <strong>MyMacros</strong> to add it to your meals.</p>
-  <a class="btn" id="open" href="#">Open in MyMacros</a>
-  <p id="codeWrap" style="display:none">Or import this code in the app<br>
-    (Meals&nbsp;tab → “Got a shared meal link?”):<br>
+  <h1 id="headline">🥗 A meal was shared with you</h1>
+  <p id="sub">Open it in <strong>MyMacros</strong> to add it to your meals.</p>
+  <span id="buttons"></span>
+  <p id="codeWrap" style="display:none">Or import this code in the app:<br>
     <span class="code" id="code"></span>
   </p>
-  <p class="small">
-    Don't have MyMacros yet? It's a free calorie &amp; macro tracker for
-    iPhone and Android — search for <strong>MyMacros</strong> in the App&nbsp;Store
-    or Play&nbsp;Store, then come back and tap the button above.
+  <p class="small" id="getApps">
+    Don't have the apps yet? <strong>MyMacros</strong> (calorie &amp; macro
+    tracker) and <strong>MyRecipes</strong> (recipe keeper) are free on the
+    App&nbsp;Store and Play&nbsp;Store — install, then come back and tap the
+    button above.
   </p>
   <script>
-    var code = new URLSearchParams(location.search).get('c') || '';
-    var link = 'mymacros://share?c=' + encodeURIComponent(code);
-    var btn = document.getElementById('open');
-    btn.href = link;
+    var params = new URLSearchParams(location.search);
+    var code = params.get('c') || '';
+    var app = params.get('app') === 'recipes' ? 'recipes' : 'macros';
+    var macrosLink = 'mymacros://share?c=' + encodeURIComponent(code);
+    var recipesLink = 'myrecipes://share?c=' + encodeURIComponent(code);
+
+    function btn(href, label, cls) {
+      var a = document.createElement('a');
+      a.className = 'btn' + (cls ? ' ' + cls : '');
+      a.href = href;
+      a.textContent = label;
+      return a;
+    }
+
+    var buttons = document.getElementById('buttons');
+    if (app === 'recipes') {
+      // A recipe: lives in both apps — MyRecipes first.
+      document.getElementById('headline').textContent = '🍲 A recipe was shared with you';
+      document.getElementById('sub').innerHTML =
+        'Open it in <strong>MyRecipes</strong> — or add it to your meals in <strong>MyMacros</strong>.';
+      buttons.appendChild(btn(recipesLink, 'Open in MyRecipes', 'recipes'));
+      buttons.appendChild(btn(macrosLink, 'Open in MyMacros'));
+    } else {
+      buttons.appendChild(btn(macrosLink, 'Open in MyMacros'));
+    }
+
     if (code) {
       document.getElementById('code').textContent = code;
       document.getElementById('codeWrap').style.display = 'block';
-      // Best effort: bounce straight into the app when it's installed.
-      setTimeout(function () { location.href = link; }, 400);
+      // Best effort: bounce straight into the primary app when installed.
+      setTimeout(function () {
+        location.href = app === 'recipes' ? recipesLink : macrosLink;
+      }, 400);
     }
   </script>
 </body>
